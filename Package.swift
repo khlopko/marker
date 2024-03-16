@@ -10,13 +10,19 @@ let package = Package(
             targets: ["marker"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-testing.git", branch: "main"),
+    ],
     targets: [
         .executableTarget(
             name: "marker"
         ),
         .testTarget(
             name: "markerTests",
-            dependencies: ["marker"]
+            dependencies: [
+                .target(name: "marker"),
+                .product(name: "Testing", package: "swift-testing"),
+            ]
         ),
     ]
 )
