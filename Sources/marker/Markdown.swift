@@ -12,6 +12,25 @@ struct Markdown {
     }
 }
 
+enum Block: Equatable {
+    case p([Block])
+    case text(String, TextStyle)
+    indirect case h(HeaderLevel, Block)
+}
+
+enum HeaderLevel: Int, Equatable {
+    case h1 = 1
+    case h2
+    case h3
+    case h4
+    case h5
+    case h6
+}
+
+enum TextStyle: Equatable {
+    case regular
+}
+
 struct MarkdownParser {
     private var lexer: MarkdownLexer
 
@@ -28,61 +47,65 @@ struct MarkdownParser {
     private var readingParagraph = false
 
     mutating func parse() -> [Block] {
-        blocks = []
-        paragraphValue = ""
-        readingParagraph = false
+        setup()
         while let tok = lexer.nextTok() {
             switch tok {
             case .newline:
                 checkParagraph()
             case let .line(value):
-                if readingParagraph {
-                    paragraphValue += value
-                } else {
-                    readingParagraph = true
-                    paragraphValue = value
-                }
-                _ = lexer.nextTok() // consume newline
+                parseLine(value: value)
             case let .header(level):
                 checkParagraph()
-                let nextTok = lexer.nextTok()
-                var headerValue: Block = .p(components: [.text("", style: .regular)])
-                if case let .line(value) = nextTok {
-                    headerValue = .p(components: [.text(value, style: .regular)])
-                }
-                switch level {
-                case 1: blocks.append(.h1(headerValue))
-                case 2: blocks.append(.h2(headerValue))
-                case 3: blocks.append(.h3(headerValue))
-                case 4: blocks.append(.h4(headerValue))
-                case 5: blocks.append(.h5(headerValue))
-                case 6: blocks.append(.h6(headerValue))
-                default: break
-                }
-                _ = lexer.nextTok() // consume newline
+                parseHeader(level: level)
             }
         }
         checkParagraph()
         return blocks
     }
 
+    private mutating func setup() {
+        blocks = []
+        paragraphValue = ""
+        readingParagraph = false
+    }
+
+    private mutating func parseLine(value: String) {
+        if readingParagraph {
+            paragraphValue += value
+        } else {
+            readingParagraph = true
+            paragraphValue = value
+        }
+        _ = lexer.nextTok() // consume newline
+    }
+
+    private mutating func parseHeader(level: HeaderLevel) {
+        let nextTok = lexer.nextTok()
+        var headerValue: Block = .p([.text("", .regular)])
+        if case let .line(value) = nextTok {
+            headerValue = .p([.text(value, .regular)])
+        }
+        blocks.append(.h(level, headerValue))
+        _ = lexer.nextTok() // consume newline
+    }
+
     private mutating func checkParagraph() {
         if readingParagraph {
-            blocks.append(.p(components: [.text(paragraphValue, style: .regular)]))
+            blocks.append(.p([.text(paragraphValue, .regular)]))
             readingParagraph = false
         }
     }
 }
 
-struct MarkdownLexer {
-    enum Token {
-        case newline
-        case line(String)
-        case header(level: Int)
-    }
+enum MarkdownToken {
+    case newline
+    case line(String)
+    case header(HeaderLevel)
+}
 
+struct MarkdownLexer {
     private let contents: [Character]
-    private(set) var lastPos = 0
+    private var lastPos = 0
 
     init(contents: String) {
         self.contents = Array(contents)
@@ -92,7 +115,7 @@ struct MarkdownLexer {
         self.contents = contents
     }
 
-    mutating func nextTok() -> Token? {
+    mutating func nextTok() -> MarkdownToken? {
         guard lastPos < contents.count else {
             return nil
         }
@@ -108,20 +131,23 @@ struct MarkdownLexer {
         }
     }
 
-    private mutating func header(start: Int) -> Token {
+    private mutating func header(start: Int) -> MarkdownToken {
         var level = 0
         while lastPos < contents.count && contents[lastPos] == "#" {
             level += 1
             lastPos += 1
         }
-        guard level < 7 && contents[lastPos] == " " else {
+        guard 
+            let headerLevel = HeaderLevel(rawValue: level),
+            contents[lastPos] == " " 
+        else {
             return line(start: start)
         }
         lastPos += 1
-        return .header(level: level)
+        return .header(headerLevel)
     }
 
-    private mutating func line(start: Int) -> Token {
+    private mutating func line(start: Int) -> MarkdownToken {
         guard start < contents.count else {
             return .line(String(contents[start...]))
         }
@@ -130,20 +156,5 @@ struct MarkdownLexer {
         }
         return .line(String(contents[start..<lastPos]))
     }
-}
-
-enum Block: Equatable {
-    indirect case h1(Block)
-    indirect case h2(Block)
-    indirect case h3(Block)
-    indirect case h4(Block)
-    indirect case h5(Block)
-    indirect case h6(Block)
-    case p(components: [Block])
-    case text(String, style: TextStyle)
-}
-
-enum TextStyle: Equatable {
-    case regular
 }
 
