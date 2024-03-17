@@ -31,7 +31,7 @@ struct MarkdownParserTests {
     func multipleParagraphsAndHeaderParagraphs() {
         var parser = MarkdownParser(contents:
         """
-        This is a paragraph. 
+        This is a paragraph.
         Still the same paragraph.
 
         And this is another one.
@@ -43,7 +43,7 @@ struct MarkdownParserTests {
         let result = parser.parse()
         
         let expected: [Block] = [
-            .p([.text("This is a paragraph. Still the same paragraph.", .regular)]),
+            .p([.text("This is a paragraph.\nStill the same paragraph.", .regular)]),
             .p([.text("And this is another one.", .regular)]),
             .h(.h1, .p([.text("And this is a header paragraph", .regular)])),
             .h(.h3, .p([.text("This one as well", .regular)])),

@@ -12,10 +12,33 @@ struct Markdown {
     }
 }
 
+extension Markdown: CustomStringConvertible {
+    var description: String {
+        blocks.map { block in
+            block.description
+        }.joined(separator: "\n")
+    }
+}
+
 enum Block: Equatable {
     case p([Block])
     case text(String, TextStyle)
     indirect case h(HeaderLevel, Block)
+}
+
+extension Block: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case let .p(blocks):
+            return blocks.map { block in
+                block.description
+            }.joined(separator: "") + "\n"
+        case let .text(value, _):
+            return value
+        case let .h(level, block):
+            return "\(String(Array(repeating: "#", count: level.rawValue))) \(block.description)"
+        }
+    }
 }
 
 enum HeaderLevel: Int, Equatable {
@@ -71,6 +94,7 @@ struct MarkdownParser {
 
     private mutating func parseLine(value: String) {
         if readingParagraph {
+            paragraphValue += "\n"
             paragraphValue += value
         } else {
             readingParagraph = true
