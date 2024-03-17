@@ -23,44 +23,62 @@ struct MarkdownParser {
         lexer = MarkdownLexer(contents: contents)
     }
 
+    private var blocks: [Block] = []
+    private var paragraphValue: String = ""
+    private var readingParagraph = false
+
     mutating func parse() -> [Block] {
-        var blocks: [Block] = []
+        blocks = []
+        paragraphValue = ""
+        readingParagraph = false
         while let tok = lexer.nextTok() {
             switch tok {
-            case let .paragraph(value):
-                blocks.append(.p(components: [.text(value, style: .regular)]))
-            case let .header(level, value):
-                blocks.append(parseHeader(level: level, value: value))
+            case .newline:
+                checkParagraph()
+            case let .line(value):
+                if readingParagraph {
+                    paragraphValue += value
+                } else {
+                    readingParagraph = true
+                    paragraphValue = value
+                }
+                _ = lexer.nextTok() // consume newline
+            case let .header(level):
+                checkParagraph()
+                let nextTok = lexer.nextTok()
+                var headerValue: Block = .p(components: [.text("", style: .regular)])
+                if case let .line(value) = nextTok {
+                    headerValue = .p(components: [.text(value, style: .regular)])
+                }
+                switch level {
+                case 1: blocks.append(.h1(headerValue))
+                case 2: blocks.append(.h2(headerValue))
+                case 3: blocks.append(.h3(headerValue))
+                case 4: blocks.append(.h4(headerValue))
+                case 5: blocks.append(.h5(headerValue))
+                case 6: blocks.append(.h6(headerValue))
+                default: break
+                }
+                _ = lexer.nextTok() // consume newline
             }
         }
+        checkParagraph()
         return blocks
     }
 
-    private func parseHeader(level: MarkdownLexer.Token.HeaderLevel, value: String) -> Block {
-        switch level {
-        case .h1: return .h1(.text(value, style: .regular))
-        case .h2: return .h2(.text(value, style: .regular))
-        case .h3: return .h3(.text(value, style: .regular))
-        case .h4: return .h4(.text(value, style: .regular))
-        case .h5: return .h5(.text(value, style: .regular))
-        case .h6: return .h6(.text(value, style: .regular))
+    private mutating func checkParagraph() {
+        if readingParagraph {
+            blocks.append(.p(components: [.text(paragraphValue, style: .regular)]))
+            readingParagraph = false
         }
     }
 }
 
 struct MarkdownLexer {
     enum Token {
-        case paragraph(String)
-        case header(level: HeaderLevel, String)
-        
-        enum HeaderLevel: Int {
-            case h1 = 1
-            case h2 = 2
-            case h3 = 3
-            case h4 = 4
-            case h5 = 5
-            case h6 = 6
-        }
+        case newline
+        case line(String)
+        case header(level: Int)
     }
 
     private let contents: [Character]
@@ -79,53 +97,38 @@ struct MarkdownLexer {
             return nil
         }
         let start = lastPos
-        while lastPos < contents.count {
-            switch contents[lastPos] {
-            case "#":
-                return parseHeader(start: start)
-            case "\n": 
-                guard let token = parseParagraph(start: start) else {
-                    fallthrough
-                }
-                return token
-            default: 
-                lastPos += 1
-            }
+        switch contents[lastPos] {
+        case "\n":
+            lastPos += 1
+            return .newline
+        case "#":
+            return header(start: start)
+        default: 
+            return line(start: start)
         }
-        return .paragraph(String(contents[start..<lastPos]))
     }
 
-    private mutating func parseHeader(start: Int) -> Token {
-        lastPos += 1
-        var level = 1
-        while lastPos < contents.count && contents[lastPos] == "#" && level < 7 {
+    private mutating func header(start: Int) -> Token {
+        var level = 0
+        while lastPos < contents.count && contents[lastPos] == "#" {
             level += 1
             lastPos += 1
         }
-        let h = Token.HeaderLevel(rawValue: level)!
+        guard level < 7 && contents[lastPos] == " " else {
+            return line(start: start)
+        }
+        lastPos += 1
+        return .header(level: level)
+    }
+
+    private mutating func line(start: Int) -> Token {
+        guard start < contents.count else {
+            return .line(String(contents[start...]))
+        }
         while lastPos < contents.count && contents[lastPos] != "\n" {
             lastPos += 1
         }
-        let token: Token = .header(level: h, String(contents[start..<lastPos]))
-        lastPos += 1
-        return token
-    }
-
-    private mutating func parseParagraph(start: Int) -> Token? {
-        guard lastPos + 1 < contents.count else {
-            return nil
-        }
-        lastPos += 1
-        switch contents[lastPos] {
-        case "\n", "#": 
-            let token: Token = .paragraph(String(contents[start..<lastPos - 1]))
-            if contents[lastPos] == "\n" {
-                lastPos += 1
-            }
-            return token
-        default: 
-            return nil
-        }
+        return .line(String(contents[start..<lastPos]))
     }
 }
 

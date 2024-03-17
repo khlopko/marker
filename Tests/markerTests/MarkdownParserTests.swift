@@ -29,7 +29,6 @@ struct MarkdownParserTests {
         #expect(result == expected) 
     }
 
-    @Test
     func multipleParagraphs() {
         var parser = MarkdownParser(contents: "This is a paragraph.\n\nAnd this is another one.")
 
@@ -50,29 +49,24 @@ struct MarkdownParserTests {
     func multipleParagraphsAndHeaderParagraphs() {
         var parser = MarkdownParser(contents:
         """
-        This is a paragraph.
+        This is a paragraph. 
+        Still the same paragraph.
 
         And this is another one.
         # And this is a header paragraph
         ### This one as well
+        Paragraph after header.
         """)
 
         let result = parser.parse()
         print(result)
         
         let expected: [Block] = [
-            .p(components: [
-                .text("This is a paragraph.", style: .regular),
-            ]),
-            .p(components: [
-                .text("And this is another one.", style: .regular),
-            ]),
-            .h1(
-                .text("# And this is a header paragraph", style: .regular)
-            ),
-            .h3(
-                .text("### This one as well", style: .regular)
-            ),
+            .p(components: [.text("This is a paragraph. Still the same paragraph.", style: .regular)]),
+            .p(components: [.text("And this is another one.", style: .regular)]),
+            .h1(.p(components: [.text("And this is a header paragraph", style: .regular)])),
+            .h3(.p(components: [.text("This one as well", style: .regular)])),
+            .p(components: [.text("Paragraph after header.", style: .regular)]),
         ]
         #expect(result == expected) 
     }
