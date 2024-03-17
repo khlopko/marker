@@ -12,12 +12,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", branch: "main"),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
     ],
     targets: [
         .executableTarget(
             name: "Marker",
             dependencies: [
                 .target(name: "DotMd"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
             path: "Cli"
         ),
