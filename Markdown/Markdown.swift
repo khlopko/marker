@@ -2,10 +2,10 @@
 
 import Foundation 
 
-struct Markdown {
-    let blocks: [Block]
+public struct Markdown {
+    public let blocks: [Block]
 
-    init(path: String) throws {
+    public init(path: String) throws {
         let contents = try String(contentsOfFile: path)
         var parser = MarkdownParser(contents: Array(contents))
         self.blocks = parser.parse()
@@ -13,21 +13,21 @@ struct Markdown {
 }
 
 extension Markdown: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         blocks.map { block in
             block.description
         }.joined(separator: "\n")
     }
 }
 
-enum Block: Equatable {
+public enum Block: Equatable {
     case p([Block])
     case text(String, TextStyle)
     indirect case h(HeaderLevel, Block)
 }
 
 extension Block: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         switch self {
         case let .p(blocks):
             return blocks.map { block in
@@ -41,7 +41,7 @@ extension Block: CustomStringConvertible {
     }
 }
 
-enum HeaderLevel: Int, Equatable {
+public enum HeaderLevel: Int, Equatable {
     case h1 = 1
     case h2
     case h3
@@ -50,7 +50,7 @@ enum HeaderLevel: Int, Equatable {
     case h6
 }
 
-enum TextStyle: Equatable {
+public enum TextStyle: Equatable {
     case regular
 }
 

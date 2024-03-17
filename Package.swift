@@ -15,14 +15,23 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "Marker"
+            name: "Marker",
+            dependencies: [
+                .target(name: "DotMd"),
+            ],
+            path: "Cli"
+        ),
+        .target(
+            name: "DotMd",
+            path: "Markdown"
         ),
         .testTarget(
-            name: "MarkerTests",
+            name: "DotMdTests",
             dependencies: [
-                .target(name: "Marker"),
+                .target(name: "DotMd"),
                 .product(name: "Testing", package: "swift-testing"),
-            ]
+            ],
+            path: "Tests/MarkdownTests"
         ),
     ]
 )

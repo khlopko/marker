@@ -1,3 +1,4 @@
+import DotMd
 
 @main
 struct App {
