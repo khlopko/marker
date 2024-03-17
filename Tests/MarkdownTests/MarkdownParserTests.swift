@@ -4,11 +4,11 @@ import Testing
 
 @testable import DotMd
 
-@Suite("MarkdownParserTests")
+@Suite("Markdown > Parser Tests")
 struct MarkdownParserTests {
     @Test
     func empty() {
-        var parser = MarkdownParser(contents: "")
+        var parser = Parser(contents: "")
 
         let result = parser.parse()
         
@@ -17,7 +17,7 @@ struct MarkdownParserTests {
 
     @Test
     func simpleParagraph() {
-        var parser = MarkdownParser(contents: "This is simple paragraph of text.")
+        var parser = Parser(contents: "This is simple paragraph of text.")
 
         let result = parser.parse()
         
@@ -29,7 +29,7 @@ struct MarkdownParserTests {
 
     @Test
     func multipleParagraphsAndHeaderParagraphs() {
-        var parser = MarkdownParser(contents:
+        var parser = Parser(contents:
         """
         This is a paragraph.
         Still the same paragraph.
