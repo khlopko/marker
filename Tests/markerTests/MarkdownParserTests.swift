@@ -2,7 +2,7 @@
 
 import Testing
 
-@testable import marker
+@testable import Marker
 
 @Suite("MarkdownParserTests")
 struct MarkdownParserTests {

@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "marker",
+    name: "Marker",
     products: [
         .executable(
-            name: "marker",
-            targets: ["marker"]
+            name: "Marker",
+            targets: ["Marker"]
         ),
     ],
     dependencies: [
@@ -15,12 +15,12 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "marker"
+            name: "Marker"
         ),
         .testTarget(
-            name: "markerTests",
+            name: "MarkerTests",
             dependencies: [
-                .target(name: "marker"),
+                .target(name: "Marker"),
                 .product(name: "Testing", package: "swift-testing"),
             ]
         ),
