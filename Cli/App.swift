@@ -15,6 +15,9 @@ import DotMd
 struct Cli: ParsableCommand {
     @Argument
     var inputFilePath: String
+
+    @Flag
+    var debug: Bool = false
     
     mutating func run() throws {
         let file = fopen(inputFilePath, "r")
@@ -27,7 +30,11 @@ struct Cli: ParsableCommand {
             }
         }
         let md = try Markdown(contents: contents)
-        print(md)
+        if debug {
+            print(md.debugDescription)
+        } else {
+            print(md.description)
+        }
     }
 }
 

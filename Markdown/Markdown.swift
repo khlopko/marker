@@ -16,6 +16,12 @@ extension Markdown: CustomStringConvertible {
     }
 }
 
+extension Markdown: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        blocks.map(\.debugDescription).joined(separator: "\n")
+    }
+}
+
 public enum Block: Equatable {
     case p([Block])
     case text(String, TextStyle)
@@ -33,6 +39,19 @@ extension Block: CustomStringConvertible {
             return value
         case let .h(level, block):
             return "\(String(Array(repeating: "#", count: level.rawValue))) \(block.description)"
+        }
+    }
+}
+
+extension Block: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch self {
+        case let .p(blocks):
+            return "p(\(blocks.map(\.debugDescription).joined(separator: ", ")))"
+        case let .text(value, style):
+            return "text(\(value), \(style))"
+        case let .h(level, block):
+            return "h(\(level), \(block.debugDescription))"
         }
     }
 }
