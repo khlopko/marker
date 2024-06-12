@@ -45,8 +45,8 @@ struct MarkdownParserTests {
         let expected: [Block] = [
             .p([.text("This is a paragraph.\nStill the same paragraph.", .regular)]),
             .p([.text("And this is another one.", .regular)]),
-            .h(.h1, .p([.text("And this is a header paragraph", .regular)])),
-            .h(.h3, .p([.text("This one as well", .regular)])),
+            .h(.h1, [.text("And this is a header paragraph", .regular)]),
+            .h(.h3, [.text("This one as well", .regular)]),
             .p([.text("Paragraph after header.", .regular)]),
         ]
         #expect(result == expected) 
