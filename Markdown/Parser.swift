@@ -19,14 +19,22 @@ internal struct Parser {
     mutating func parse() -> [Block] {
         setup()
         while let tok = lexer.nextTok() {
+            if case .line = tok {
+                // do nothing
+            } else {
+                checkParagraph()
+            }
             switch tok {
             case .newline:
-                checkParagraph()
+                break
             case let .line(value):
                 parseLine(value: value)
             case let .header(level):
-                checkParagraph()
                 parseHeader(level: level)
+            case .list:
+                parseList()
+            case .codeBlock:
+                parseCodeBlock()
             }
         }
         checkParagraph()
@@ -52,12 +60,41 @@ internal struct Parser {
 
     private mutating func parseHeader(level: HeaderLevel) {
         let nextTok = lexer.nextTok()
-        var headerValue: Block = .p([.text("", .regular)])
+        var components: [Block] = []
         if case let .line(value) = nextTok {
-            headerValue = .p([.text(value, .regular)])
+            components.append(.text(value, .regular))
         }
-        blocks.append(.h(level, headerValue))
+        blocks.append(.h(level, components))
         _ = lexer.nextTok() // consume newline
+    }
+
+    private mutating func parseList() {
+        var items: [Block] = []
+        var consequentiveLines = 0
+        while consequentiveLines < 2, let tok = lexer.nextTok() {
+            switch tok {
+            case .list:
+                consequentiveLines = 0
+            case let .line(value):
+                items.append(.text(value, .regular))
+            default:
+                consequentiveLines += 1
+            }
+        }
+        blocks.append(.list(items))
+    }
+
+    private mutating func parseCodeBlock() {
+        var value = ""
+        while let tok = lexer.nextTok() {
+            switch tok {
+            case .codeBlock:
+                blocks.append(.code(value))
+                return
+            default:
+                value += tok.rawValue
+            }
+        }
     }
 
     private mutating func checkParagraph() {

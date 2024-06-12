@@ -1,10 +1,12 @@
-// Parsed markdown representation
+//  Parsed markdown representation
 //  (c) Kyrylo Khlopko
 
 public struct Markdown {
+    public let title: String
     public let blocks: [Block]
 
-    public init(contents: String) throws {
+    public init(title: String, contents: String) throws {
+        self.title = title
         var parser = Parser(contents: Array(contents))
         self.blocks = parser.parse()
     }
@@ -25,7 +27,9 @@ extension Markdown: CustomDebugStringConvertible {
 public enum Block: Equatable {
     case p([Block])
     case text(String, TextStyle)
-    indirect case h(HeaderLevel, Block)
+    case list([Block])
+    case code(String)
+    indirect case h(HeaderLevel, [Block])
 }
 
 extension Block: CustomStringConvertible {
@@ -36,6 +40,12 @@ extension Block: CustomStringConvertible {
                 block.description
             }.joined(separator: "") + "\n"
         case let .text(value, _):
+            return value
+        case let .list(blocks):
+            return blocks.map { block in
+                block.description
+            }.joined(separator: "") + "\n"
+        case let .code(value):
             return value
         case let .h(level, block):
             return "\(String(Array(repeating: "#", count: level.rawValue))) \(block.description)"
@@ -50,6 +60,10 @@ extension Block: CustomDebugStringConvertible {
             return "p(\(blocks.map(\.debugDescription).joined(separator: ", ")))"
         case let .text(value, style):
             return "text(\(value), \(style))"
+        case let .list(blocks):
+            return "list(\(blocks.map(\.debugDescription).joined(separator: ", ")))"
+        case let .code(value):
+            return "cade(\(value))"
         case let .h(level, block):
             return "h(\(level), \(block.debugDescription))"
         }

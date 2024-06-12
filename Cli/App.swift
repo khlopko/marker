@@ -16,6 +16,14 @@ struct Cli: ParsableCommand {
     @Argument
     var inputFilePath: String
 
+    enum OutputFormat: String, ExpressibleByArgument {
+        case html
+        case raw
+    }
+
+    @Option(name: .shortAndLong)
+    var outputFormat: OutputFormat = .raw
+
     @Flag
     var debug: Bool = false
     
@@ -29,11 +37,19 @@ struct Cli: ParsableCommand {
                 contents += chunk
             }
         }
-        let md = try Markdown(contents: contents)
+        let pathComponents = inputFilePath.split(separator: "/")
+        let title = String(pathComponents.last!)
+        let md = try Markdown(title: title, contents: contents)
         if debug {
             print(md.debugDescription)
         } else {
-            print(md.description)
+            switch outputFormat {
+            case .html:
+                let renderer = HTMLRenderer(markdown: md)
+                print(renderer.render())
+            case .raw:
+                print(md.description)
+            }
         }
     }
 }
