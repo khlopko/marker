@@ -28,7 +28,7 @@ public enum Block: Equatable {
     case p([Block])
     case text(String, TextStyle)
     case list([Block])
-    case code(String)
+    case code(String, CodeBlockInfo)
     indirect case h(HeaderLevel, [Block])
 }
 
@@ -45,7 +45,7 @@ extension Block: CustomStringConvertible {
             return blocks.map { block in
                 block.description
             }.joined(separator: "") + "\n"
-        case let .code(value):
+        case let .code(value, _):
             return value
         case let .h(level, block):
             return "\(String(Array(repeating: "#", count: level.rawValue))) \(block.description)"
@@ -62,8 +62,14 @@ extension Block: CustomDebugStringConvertible {
             return "text(\(value), \(style))"
         case let .list(blocks):
             return "list(\(blocks.map(\.debugDescription).joined(separator: ", ")))"
-        case let .code(value):
-            return "cade(\(value))"
+        case let .code(value, info):
+            var prefix: String = [info.lang, info.rest].compactMap {
+                $0?.description
+            }.joined(separator: "")
+            if !prefix.isEmpty {
+                prefix = "[\(prefix)]"
+            }
+            return "code\(prefix)(\(value))"
         case let .h(level, block):
             return "h(\(level), \(block.debugDescription))"
         }
@@ -81,5 +87,10 @@ public enum HeaderLevel: Int, Equatable {
 
 public enum TextStyle: Equatable {
     case regular
+}
+
+public struct CodeBlockInfo: Equatable {
+    public let lang: String?
+    public let rest: String?
 }
 

@@ -33,8 +33,8 @@ internal struct Parser {
                 parseHeader(level: level)
             case .list:
                 parseList()
-            case .codeBlock:
-                parseCodeBlock()
+            case let .codeBlock(info):
+                parseCodeBlock(info: info)
             }
         }
         checkParagraph()
@@ -84,17 +84,28 @@ internal struct Parser {
         blocks.append(.list(items))
     }
 
-    private mutating func parseCodeBlock() {
+    private mutating func parseCodeBlock(info: CodeBlockInfo) {
         var value = ""
         while let tok = lexer.nextTok() {
             switch tok {
             case .codeBlock:
-                blocks.append(.code(value))
+                var i = value.startIndex
+                while i < value.endIndex && value[i] == "\n" {
+                    value.removeFirst()
+                    i = value.startIndex
+                }
+                i = value.index(before: value.endIndex)
+                while i >= value.startIndex && value[i] == "\n" {
+                    value.removeLast()
+                    i = value.index(before: value.endIndex) 
+                }
+                blocks.append(.code(value, info))
                 return
             default:
                 value += tok.rawValue
             }
         }
+        blocks.append(.code(value, info))
     }
 
     private mutating func checkParagraph() {

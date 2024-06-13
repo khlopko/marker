@@ -6,6 +6,7 @@ public struct HTMLRenderer {
     }
     
     public func render() -> String {
+        /*
         """
         <!DOCTYPE html>
         <html>
@@ -34,10 +35,14 @@ public struct HTMLRenderer {
             </style>
         </head>
         <body>
-            \(markdown.blocks.map { render($0) }.joined(separator: "\n"))
+        */
+        
+            "\(markdown.blocks.map { render($0) }.joined(separator: "\n"))"
+            /*
         </body>
         </html>
         """
+             */
     }
 
     private func render(_ block: Block) -> String {
@@ -48,10 +53,15 @@ public struct HTMLRenderer {
             "<span class=\"\(style)\">\(value)</span>"
         case let .list(blocks):
             "<ul>\(blocks.map { "<li>\(render($0))</li>" }.joined())</ul>"
-        case let .code(value):
-            "<pre><code>\(value)</code></pre>"
+        case let .code(value, info):
+            render(code: value, lang: info.lang)
         case let .h(level, blocks):
             "<h\(level.rawValue)>\(blocks.map { render($0) }.joined())</h\(level.rawValue)>"
         }
+    }
+
+    private func render(code: String, lang: String?) -> String {
+        let className = lang.map { " class=\"language-\($0)\"" } ?? ""
+        return "<pre><code\(className)>\(code)</code></pre>"
     }
 }

@@ -6,7 +6,7 @@ internal enum MarkdownToken {
     case line(String)
     case list
     case header(HeaderLevel)
-    case codeBlock(lang: String?)
+    case codeBlock(CodeBlockInfo)
 
     var rawValue: String {
         switch self {
@@ -18,8 +18,8 @@ internal enum MarkdownToken {
             return "_"
         case let .header(level):
             return Array(repeating: "#", count: level.rawValue).joined()
-        case let .codeBlock(lang):
-            return "```\(lang ?? "")"
+        case let .codeBlock(info):
+            return "```\(info.lang ?? "") \(info.rest ?? "")"
         }
     }
 }
@@ -49,6 +49,9 @@ internal struct Lexer {
             return header(start: start)
         case "-":
             lastPos += 1
+            if lastPos < contents.count && contents[lastPos] == " " {
+                lastPos += 1
+            }
             return .list
         case "`":
             // consume 3 backticks
@@ -56,15 +59,32 @@ internal struct Lexer {
             while lastPos < contents.count && lastPos - start < 3 && contents[lastPos] == "`" {
                 lastPos += 1
             }
-            var lang: String? = nil
-            /*
-            while lastPos < contents.count && (contents[lastPos] != "\n" || contents[lastPos] != " ") {
+            if lastPos - start < 3 {
+                fallthrough
+            }
+            var lang: String?
+            var rest: String?
+            var restStart: Int?
+            while lastPos < contents.count && contents[lastPos] != "\n" {
+                if contents[lastPos] == " " {
+                    if restStart == nil {
+                        restStart = lastPos
+                    }
+                    lastPos += 1
+                    continue
+                }
+                if lang == nil {
+                    lang = ""
+                }
+                lang! += String(contents[lastPos])
+                restStart = nil
                 lastPos += 1
             }
-            lang = String(contents[start + 3..<lastPos])
-            print(lastPos, lang)
-            */
-            return .codeBlock(lang: lang)
+            if let restStart {
+                rest = String(contents[restStart..<lastPos])
+            }
+            let info = CodeBlockInfo(lang: lang, rest: rest)
+            return .codeBlock(info)
         default: 
             return line(start: start)
         }
