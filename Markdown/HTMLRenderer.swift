@@ -68,7 +68,7 @@ public struct HTMLRenderer {
         case let .p(text):
             "<p>\(text.map { render($0) }.joined())</p>"
         case let .text(value, style):
-            "<span class=\"\(style)\">\(value)</span>"
+            render(text: value, style: style)
         case let .list(blocks):
             "<ul>\(blocks.map { "<li>\(render($0))</li>" }.joined())</ul>"
         case let .code(value, info):
@@ -76,6 +76,23 @@ public struct HTMLRenderer {
         case let .h(level, blocks):
             "<h\(level.rawValue)>\(blocks.map { render($0) }.joined())</h\(level.rawValue)>"
         }
+    }
+
+    private func render(text: String, style: TextStyle) -> String {
+        var value = text
+        for i in value.indices {
+            var newValue: String?
+            if value[i] == "<" {
+                newValue = "&lt;"
+            } else if value[i] == ">" {
+                newValue = "&gt;"
+            }
+            if let newValue {
+                value.remove(at: i)
+                value.insert(contentsOf: newValue, at: i)
+            }
+        }
+        return "<span class=\"\(style)\">\(value)</span>"
     }
 
     private func render(code: String, lang: String?) -> String {

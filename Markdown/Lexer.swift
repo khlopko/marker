@@ -113,18 +113,7 @@ internal struct Lexer {
             lastPos += 1
         }
         var value = String(contents[start..<lastPos])
-        for i in value.indices {
-            var newValue: String?
-            if value[i] == "<" {
-                newValue = "&lt;"
-            } else if value[i] == ">" {
-                newValue = "&gt;"
-            }
-            if let newValue {
-                value.remove(at: i)
-                value.insert(contentsOf: newValue, at: i)
-            }
-        }
+        
         return .line(value)
     }
 }
