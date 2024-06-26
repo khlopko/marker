@@ -24,7 +24,7 @@ extension Markdown: CustomDebugStringConvertible {
     }
 }
 
-public enum Block: Equatable {
+public enum Block: Equatable, Sendable {
     case p([Block])
     case text(String, TextStyle)
     case list([Block])
@@ -46,7 +46,7 @@ extension Block: CustomStringConvertible {
                 block.description
             }.joined(separator: "") + "\n"
         case let .code(value, _):
-            return value
+            return "```\n\(value)\n```"
         case let .h(level, block):
             return "\(String(Array(repeating: "#", count: level.rawValue))) \(block.description)"
         }
@@ -76,7 +76,7 @@ extension Block: CustomDebugStringConvertible {
     }
 }
 
-public enum HeaderLevel: Int, Equatable {
+public enum HeaderLevel: Int, Equatable, Sendable {
     case h1 = 1
     case h2
     case h3
@@ -85,11 +85,11 @@ public enum HeaderLevel: Int, Equatable {
     case h6
 }
 
-public enum TextStyle: Equatable {
+public enum TextStyle: Equatable, Sendable {
     case regular
 }
 
-public struct CodeBlockInfo: Equatable {
+public struct CodeBlockInfo: Equatable, Sendable {
     public let lang: String?
     public let rest: String?
 }

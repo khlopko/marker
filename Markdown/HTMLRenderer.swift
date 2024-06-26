@@ -6,7 +6,6 @@ public struct HTMLRenderer {
     }
     
     public func render() -> String {
-        /*
         """
         <!DOCTYPE html>
         <html>
@@ -16,7 +15,6 @@ public struct HTMLRenderer {
             <style>
                 body {
                     font-family: sans-serif;
-                    color: #333;
                 }
                 .bold {
                     font-weight: bold;
@@ -27,6 +25,30 @@ public struct HTMLRenderer {
                 .underline {
                     text-decoration: underline;
                 }
+                h1, h2, h3, h4, h5, h6 {
+                    color: black;
+                }
+                h1 {
+                    font-size: 2.5rem;
+                }
+                h2 {
+                    font-size: 2rem;
+                }
+                h3 {
+                    font-size: 1.75rem;
+                }
+                h4 {
+                    font-size: 1.5rem;
+                }
+                h5 {
+                    font-size: 1.25rem;
+                }
+                h6 {
+                    font-size: 1rem;
+                }
+                p {
+                    color: black;
+                }
                 pre {
                     background-color: #f4f4f4;
                     padding: 10px;
@@ -35,14 +57,10 @@ public struct HTMLRenderer {
             </style>
         </head>
         <body>
-        */
-        
-            "\(markdown.blocks.map { render($0) }.joined(separator: "\n"))"
-            /*
+            \(markdown.blocks.map { render($0) }.joined(separator: "\n"))
         </body>
         </html>
         """
-             */
     }
 
     private func render(_ block: Block) -> String {

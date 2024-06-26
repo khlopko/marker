@@ -65,7 +65,6 @@ internal struct Parser {
             components.append(.text(value, .regular))
         }
         blocks.append(.h(level, components))
-        _ = lexer.nextTok() // consume newline
     }
 
     private mutating func parseList() {
@@ -94,10 +93,12 @@ internal struct Parser {
                     value.removeFirst()
                     i = value.startIndex
                 }
-                i = value.index(before: value.endIndex)
-                while i >= value.startIndex && value[i] == "\n" {
-                    value.removeLast()
-                    i = value.index(before: value.endIndex) 
+                if !value.isEmpty {
+                    i = value.index(before: value.endIndex)
+                    while i >= value.startIndex && value[i] == "\n" {
+                        value.removeLast()
+                        i = value.index(before: value.endIndex) 
+                    }
                 }
                 blocks.append(.code(value, info))
                 return

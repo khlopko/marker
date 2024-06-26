@@ -55,7 +55,6 @@ internal struct Lexer {
             return .list
         case "`":
             // consume 3 backticks
-            let start = lastPos
             while lastPos < contents.count && lastPos - start < 3 && contents[lastPos] == "`" {
                 lastPos += 1
             }
@@ -98,7 +97,7 @@ internal struct Lexer {
         }
         guard 
             let headerLevel = HeaderLevel(rawValue: level),
-            contents[lastPos] == " " 
+            lastPos >= contents.count || contents[lastPos] == " " || contents[lastPos] == "\n"
         else {
             return line(start: start)
         }
@@ -113,7 +112,20 @@ internal struct Lexer {
         while lastPos < contents.count && contents[lastPos] != "\n" {
             lastPos += 1
         }
-        return .line(String(contents[start..<lastPos]))
+        var value = String(contents[start..<lastPos])
+        for i in value.indices {
+            var newValue: String?
+            if value[i] == "<" {
+                newValue = "&lt;"
+            } else if value[i] == ">" {
+                newValue = "&gt;"
+            }
+            if let newValue {
+                value.remove(at: i)
+                value.insert(contentsOf: newValue, at: i)
+            }
+        }
+        return .line(value)
     }
 }
 

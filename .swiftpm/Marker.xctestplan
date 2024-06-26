@@ -1,0 +1,22 @@
+{
+  "configurations" : [
+    {
+      "id" : "02D63E6A-4202-42C3-81AE-FF88D0DB141E",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "Marker",
+      "name" : "Marker"
+    }
+  },
+  "testTargets" : [
+
+  ],
+  "version" : 1
+}
