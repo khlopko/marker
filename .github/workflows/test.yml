@@ -14,7 +14,7 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: khlopko/setup-swift@e686d1ab2167db6606d8cdbcffc9b813c1e89b7c
+    - uses: khlopko/setup-swift@8e40832f03d3d3d672037ad9d9bba479fcb284fb
       with:
         swift-version: "main-snapshot"
     - name: build
@@ -25,9 +25,31 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
-    - uses: khlopko/setup-swift@e686d1ab2167db6606d8cdbcffc9b813c1e89b7c
+    - uses: khlopko/setup-swift@8e40832f03d3d3d672037ad9d9bba479fcb284fb
       with:
         swift-version: "main-snapshot"
+    - name: build
+      run: swift build
+    - name: run tests
+      run: swift test
+  build-macos-stable:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: khlopko/setup-swift@8e40832f03d3d3d672037ad9d9bba479fcb284fb
+      with:
+        swift-version: "5.10"
+    - name: build
+      run: swift build
+    - name: run tests
+      run: swift test
+  build-ubuntu-stable:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: khlopko/setup-swift@8e40832f03d3d3d672037ad9d9bba479fcb284fb
+      with:
+        swift-version: "5.10"
     - name: build
       run: swift build
     - name: run tests
