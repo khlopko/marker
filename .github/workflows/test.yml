@@ -14,7 +14,7 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: khlopko/setup-swift@d34c64e31499b5c58c5d6c91a6ad57a9e28e5642
+    - uses: khlopko/setup-swift@d0839d999c03e2cb7d0d26577ee3e3cba6944005
       with:
         swift-version: "main-snapshot"
     - name: build
