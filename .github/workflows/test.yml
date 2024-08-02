@@ -21,4 +21,15 @@ jobs:
       run: swift build
     - name: run tests
       run: swift test
+  build-ubuntu:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: khlopko/setup-swift@e686d1ab2167db6606d8cdbcffc9b813c1e89b7c
+      with:
+        swift-version: "main-snapshot"
+    - name: build
+      run: swift build
+    - name: run tests
+      run: swift test
 
