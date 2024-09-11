@@ -17,8 +17,6 @@ jobs:
     - uses: swift-actions/setup-swift@5997f5179a4d8338f20f6cf094de5024731485ac
       with:
           swift-version: "main-snapshot"
-      env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: build
       run: swift build
     - name: run tests
