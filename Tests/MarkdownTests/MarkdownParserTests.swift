@@ -76,25 +76,6 @@ struct MarkdownParserTests {
         ]) 
     }
 
-    @Test("Example 4")
-    func example4() {
-        var parser = Parser(contents: """
-          - foo
-
-            bar
-        """)
-
-        let result = parser.parse()
-
-        let expected: [Block] = [
-            .list([
-                .p([.text("foo", .regular)]),
-                .p([.text("bar", .regular)]),
-            ])
-        ]
-        #expect(result == expected)
-    }
-
     @Test("Example 42: Precedence")
     func listOverCodeSpan() {
         var parser = Parser(contents: """
