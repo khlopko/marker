@@ -79,24 +79,11 @@ public struct HTMLRenderer {
     }
 
     private func render(text: String, style: TextStyle) -> String {
-        var value = text
-        for i in value.indices {
-            var newValue: String?
-            if value[i] == "<" {
-                newValue = "&lt;"
-            } else if value[i] == ">" {
-                newValue = "&gt;"
-            }
-            if let newValue {
-                value.remove(at: i)
-                value.insert(contentsOf: newValue, at: i)
-            }
-        }
-        return "<span class=\"\(style)\">\(value)</span>"
+        return "<span class=\"\(style)\">\(text.escapedForHTML())</span>"
     }
 
     private func render(code: String, lang: String?) -> String {
         let className = lang.map { " class=\"language-\($0)\"" } ?? ""
-        return "<pre><code\(className)>\(code)</code></pre>"
+        return "<pre><code\(className)>\(code.escapedForHTML())</code></pre>"
     }
 }
