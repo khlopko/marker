@@ -8,6 +8,8 @@ internal enum MarkdownToken {
     case header(HeaderLevel)
     case codeBlock(CodeBlockInfo)
     case quote
+    case indent
+    case whitespace(count: Int)
 
     var rawValue: String {
         switch self {
@@ -23,6 +25,10 @@ internal enum MarkdownToken {
             return "```\(info.lang ?? "") \(info.rest ?? "")"
         case .quote:
             return ">"
+        case .indent:
+            return "\t"
+        case let .whitespace(count):
+            return Array(repeating: " ", count: count).joined()
         }
     }
 }
@@ -39,24 +45,17 @@ internal struct Lexer {
         self.contents = contents
     }
 
-    mutating func nextTok(eatWhitespaces: Bool = true) -> MarkdownToken? {
+    mutating func nextTok() -> MarkdownToken? {
         guard lastPos < contents.count else {
             return nil
         }
         let start = lastPos
-        if eatWhitespaces {
-            while lastPos < contents.count && (contents[lastPos] == " " || contents[lastPos] == "\t") {
-                lastPos += 1
-            }
-        }
         switch contents[lastPos] {
+        case "\t":
+            lastPos += 1
+            return .indent
         case "\n":
             lastPos += 1
-            if eatWhitespaces {
-                while lastPos < contents.count && (contents[lastPos] == " " || contents[lastPos] == "\t") {
-                    lastPos += 1
-                }
-            }
             return .newline
         case "#":
             return header(start: start)
@@ -104,6 +103,14 @@ internal struct Lexer {
             }
             let info = CodeBlockInfo(lang: lang, rest: rest)
             return .codeBlock(info)
+        case " ":
+            var countOfWhitespaces = 0
+            while lastPos < contents.count && contents[lastPos] == " " {
+                lastPos += 1
+                countOfWhitespaces += 1
+            }
+
+            return .whitespace(count: countOfWhitespaces)
         default:
             return line(start: start)
         }

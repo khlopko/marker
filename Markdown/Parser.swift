@@ -27,6 +27,14 @@ internal struct Parser {
             switch tok {
             case .newline:
                 break
+            case let .whitespace(count):
+                if count == 4 {
+                    parseCodeBlock(info: .empty)
+                } else {
+                    continue
+                }
+            case .indent:
+                parseCodeBlock(info: .empty)
             case let .line(value):
                 parseLine(value: value)
             case let .header(level):
@@ -39,7 +47,7 @@ internal struct Parser {
                 var components: [Block] = []
                 while case let .line(value) = lexer.nextTok() {
                     components.append(.text(value, .regular))
-                    lexer.nextTok() // new line
+                    lexer.nextTok()  // new line
                     guard case .quote = lexer.nextTok() else {
                         break
                     }
@@ -65,7 +73,7 @@ internal struct Parser {
             readingParagraph = true
             paragraphValue = value
         }
-        _ = lexer.nextTok() // consume newline
+        _ = lexer.nextTok()  // consume newline
     }
 
     private mutating func parseHeader(level: HeaderLevel) {
@@ -78,40 +86,42 @@ internal struct Parser {
     }
 
     private mutating func parseList() {
-        var items: [Block] = []
+        var elements: [ListElement] = []
         var consequentiveLines = 0
-        while consequentiveLines < 2, let tok = lexer.nextTok() {
+        var elementBlocks: [Block] = []
+        while let tok = lexer.nextTok() {
             switch tok {
             case .list:
+                elements.append(ListElement(blocks: elementBlocks))
+                elementBlocks = []
                 consequentiveLines = 0
             case let .line(value):
-                items.append(.p([.text(value, .regular)]))
+                elementBlocks.append(.p([.text(value, .regular)]))
+            case let .whitespace(count):
+                if count == 4 {
+                    consequentiveLines = 0
+                }
+            case .indent:
+                consequentiveLines = 0
             default:
                 consequentiveLines += 1
             }
         }
-        blocks.append(.list(items))
+        elements.append(ListElement(blocks: elementBlocks))
+        blocks.append(.list(elements))
     }
 
     private mutating func parseCodeBlock(info: CodeBlockInfo) {
         var value = ""
-        while let tok = lexer.nextTok(eatWhitespaces: false) {
+        while let tok = lexer.nextTok() {
             switch tok {
             case .codeBlock:
-                var i = value.startIndex
-                while i < value.endIndex && value[i] == "\n" {
-                    value.removeFirst()
-                    i = value.startIndex
+                continue
+            case let .whitespace(count):
+                if count == 4 {
+                    continue
                 }
-                if !value.isEmpty {
-                    i = value.index(before: value.endIndex)
-                    while i >= value.startIndex && value[i] == "\n" {
-                        value.removeLast()
-                        i = value.index(before: value.endIndex) 
-                    }
-                }
-                blocks.append(.code(value, info))
-                return
+                fallthrough
             default:
                 value += tok.rawValue
             }
@@ -126,4 +136,3 @@ internal struct Parser {
         }
     }
 }
-

@@ -124,8 +124,8 @@ extension HTMLRenderer {
             "<p>\(text.map { render($0) }.joined())</p>"
         case let .text(value, style):
             render(text: value, style: style)
-        case let .list(blocks):
-            "<ul>\(blocks.map { "<li>\(render($0))</li>" }.joined())</ul>"
+        case let .list(elements):
+            "<ul>\(elements.map { element in "<li>\(element.blocks.map(render).joined(separator: "\n"))</li>" }.joined())</ul>"
         case let .code(value, info):
             render(code: value, lang: info.lang)
         case let .quote(blocks):

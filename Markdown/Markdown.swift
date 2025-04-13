@@ -27,7 +27,7 @@ extension Markdown: CustomDebugStringConvertible {
 public enum Block: Equatable, Sendable {
     case p([Block])
     case text(String, TextStyle)
-    case list([Block])
+    case list([ListElement])
     case code(String, CodeBlockInfo)
     case quote([Block])
     indirect case h(HeaderLevel, [Block])
@@ -42,16 +42,19 @@ extension Block: CustomStringConvertible {
             }.joined(separator: "") + "\n"
         case let .text(value, _):
             return value
-        case let .list(blocks):
-            return blocks.map { block in
-                block.description
-            }.joined() + "\n"
+        case let .list(elements):
+            return elements.map { element in
+                return element.blocks.map { block in
+                    block.description
+                }.joined() + "\n"
+            }.joined()
         case let .code(value, _):
             return "```\n\(value)\n```"
         case let .quote(blocks):
             return "> \(blocks.map(\.description).joined())"
         case let .h(level, blocks):
-            return "\(String(Array(repeating: "#", count: level.rawValue))) \(blocks.map(\.description).joined())"
+            return
+                "\(String(Array(repeating: "#", count: level.rawValue))) \(blocks.map(\.description).joined())"
         }
     }
 }
@@ -63,8 +66,8 @@ extension Block: CustomDebugStringConvertible {
             return "p(\(blocks.map(\.debugDescription).joined(separator: ", ")))"
         case let .text(value, style):
             return "text(\(value), \(style))"
-        case let .list(blocks):
-            return "list(\(blocks.map(\.debugDescription).joined(separator: ", ")))"
+        case let .list(elements):
+            return "list(\(elements.flatMap(\.blocks).map(\.debugDescription).joined(separator: ", ")))"
         case let .code(value, info):
             var prefix: String = [info.lang, info.rest].compactMap {
                 $0?.description
@@ -95,7 +98,14 @@ public enum TextStyle: Equatable, Sendable {
 }
 
 public struct CodeBlockInfo: Equatable, Sendable {
+    public static var empty: Self {
+        return Self(lang: nil, rest: nil)
+    }
+
     public let lang: String?
     public let rest: String?
 }
 
+public struct ListElement: Equatable, Sendable {
+    let blocks: [Block]
+}
