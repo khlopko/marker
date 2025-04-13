@@ -4,14 +4,64 @@ public struct HTMLRenderer {
     public init(markdown: Markdown) {
         self.markdown = markdown
     }
-    
-    public func render() -> String {
-        """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>\(markdown.title)</title>
+}
+
+extension HTMLRenderer {
+    public struct Parameters: OptionSet, Sendable {
+        public static let fullHTML = Parameters(rawValue: 1 << 1)
+        public static let withStyles = Parameters(rawValue: 1 << 2)
+
+        public typealias RawValue = Int
+
+        public let rawValue: RawValue
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+    }
+}
+
+extension HTMLRenderer {
+    public func render(parameters: Parameters) -> String {
+        var decorators: [(String) -> String] = []
+        if parameters.contains(.fullHTML) {
+            decorators.append(fullHTMLDecorator(parameters: parameters))
+        }
+        let body = markdown.blocks.map { render($0) }.joined(separator: "\n")
+        var output = body
+        for decorator in decorators {
+            output = decorator(output)
+        }
+        return output
+    }
+
+    private func fullHTMLDecorator(parameters: Parameters) -> (String) -> String {
+        return { body in
+            var head = """
+                <head>
+                    <meta charset="utf-8">
+                    <title>\(markdown.title)</title>
+                """
+            if parameters.contains(.withStyles) {
+                head += defaultStyle()
+                head += "\n"
+            }
+            head += "</head>"
+
+            return """
+                <!DOCTYPE html>
+                <html>
+                \(head)
+                <body>
+                    \(body)
+                </body>
+                </html>
+                """
+        }
+    }
+
+    private func defaultStyle() -> String {
+        return """
             <style>
                 body {
                     font-family: sans-serif;
@@ -55,12 +105,7 @@ public struct HTMLRenderer {
                     border-radius: 5px;
                 }
             </style>
-        </head>
-        <body>
-            \(markdown.blocks.map { render($0) }.joined(separator: "\n"))
-        </body>
-        </html>
-        """
+            """
     }
 
     private func render(_ block: Block) -> String {

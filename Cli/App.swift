@@ -46,7 +46,7 @@ struct Cli: ParsableCommand {
             switch outputFormat {
             case .html:
                 let renderer = HTMLRenderer(markdown: md)
-                print(renderer.render())
+                print(renderer.render(parameters: [.fullHTML, .withStyles]))
             case .raw:
                 print(md.description)
             }
