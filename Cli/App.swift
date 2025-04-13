@@ -7,6 +7,7 @@
     import Glibc
 #endif
 
+import Foundation
 import ArgumentParser
 
 import DotMd
@@ -21,9 +22,6 @@ struct Cli: ParsableCommand {
     @Option(name: .shortAndLong)
     var inputFormat: InputFormat = .file
 
-    @Argument
-    var inputFilePath: String
-
     enum OutputFormat: String, ExpressibleByArgument {
         case html
         case raw
@@ -32,6 +30,9 @@ struct Cli: ParsableCommand {
     @Option(name: .shortAndLong)
     var outputFormat: OutputFormat = .raw
 
+    @Option(name: .customShort("t"))
+    var inputText: String
+
     @Flag
     var debug: Bool = false
 
@@ -39,7 +40,7 @@ struct Cli: ParsableCommand {
         let md: Markdown
         switch inputFormat {
         case .file:
-            let file = fopen(inputFilePath, "r")
+            let file = fopen(inputText, "r")
             defer { fclose(file) }
             var contents = ""
             var buf = Array(repeating: CChar(0), count: 1024)
@@ -48,11 +49,11 @@ struct Cli: ParsableCommand {
                     contents += chunk
                 }
             }
-            let pathComponents = inputFilePath.split(separator: "/")
+            let pathComponents = inputText.split(separator: "/")
             let title = String(pathComponents.last!)
             md = try Markdown(title: title, contents: contents)
         case .text:
-            md = try Markdown(title: "Markdown", contents: inputFilePath)
+            md = try Markdown(title: "Markdown", contents: inputText.trimmingCharacters(in: CharacterSet(charactersIn: "\"")))
         }
         if debug {
             print(md.debugDescription)

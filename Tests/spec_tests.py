@@ -176,7 +176,7 @@ def get_tests(specfile):
 def swift_cmark(text):
     try:
         result = subprocess.run(
-            ["./../.build/debug/Marker", "-i", "text", text, "-o", "html"],
+            ["./../.build/debug/Marker", "-i", "text", "-o", "html", "-t", f'"{text}"'],
             capture_output=True,
             text=True,
             check=False,
@@ -184,7 +184,7 @@ def swift_cmark(text):
         stdout = result.stdout
         stderr = result.stderr
         if stderr:
-            return [0, "", ""]
+            return [0, f'Input: "{text}"' + "\n" + stderr, ""]
 
         return [0, stdout, ""]
     except subprocess.CalledProcessError as e:

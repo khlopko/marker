@@ -125,7 +125,7 @@ extension HTMLRenderer {
         case let .text(value, style):
             render(text: value, style: style)
         case let .list(elements):
-            "<ul>\(elements.map { element in "<li>\(element.blocks.map(render).joined(separator: "\n"))</li>" }.joined())</ul>"
+            renderList(with: elements)
         case let .code(value, info):
             render(code: value, lang: info.lang)
         case let .quote(blocks):
@@ -133,6 +133,19 @@ extension HTMLRenderer {
         case let .h(level, blocks):
             "<h\(level.rawValue)>\(blocks.map { render($0) }.joined())</h\(level.rawValue)>"
         }
+    }
+
+    private func renderList(with elements: [ListElement]) -> String {
+        var out = "<ul>"
+        for element in elements {
+            out += "\n"
+            out += "<li>"
+            out += "\n"
+            out += element.blocks.map(render).joined(separator: "\n")
+            out += "\n</li>"
+        }
+        out += "\n</ul>"
+        return out
     }
 
     private func render(text: String, style: TextStyle) -> String {

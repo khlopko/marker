@@ -52,50 +52,6 @@ struct MarkdownParserTests {
         #expect(result == expected) 
     }
 
-/*
-    @Test("Parse a simple list")
-    func lists() {
-        var parser = Parser(contents: """
-        Here is a list:
-        - First item
-        - Second item
-        - Third item
-
-        And text after list.
-        """)
-
-        let result = parser.parse()
-        
-        #expect(result == [
-            .p([.text("Here is a list:", .regular)]),
-            .list([
-                .p([.text("First item", .regular)]),
-                .p([.text("Second item", .regular)]),
-                .p([.text("Third item", .regular)]),
-            ]),
-            .p([.text("And text after list.", .regular)]),
-        ]) 
-    }
-    */
-
-    @Test("Bench markdown code block")
-    func mdCodeBlockFromBench() {
-        var parser = Parser(contents: """
-        ``` markdown
-        1. one
-
-        2. two
-        3. three
-        ```
-        """)
-
-        let result = parser.parse()
-
-        #expect(result == [
-            .code("1. one\n\n2. two\n3. three", CodeBlockInfo(lang: "markdown", rest: nil))
-        ])
-    }
-
     @Test("Basic quote parsing")
     func basicQuote() {
         var parser = Parser(contents: """
@@ -166,7 +122,7 @@ struct MarkdownParserTests {
 
     @Test("Example 5")
     func example5() {
-        var parser = Parser(contents: "- foo\n\n\t\tbar")
+        var parser = Parser(contents: "- foo\n\n\t\tbar\n")
 
         let result = parser.parse()
 
@@ -174,9 +130,59 @@ struct MarkdownParserTests {
             .list([
                 ListElement(blocks: [
                     .p([.text("foo", .regular)]),
-                    .code("  bar", .empty),
+                    .code("  bar\n", .empty),
                 ])
             ]),
+        ]
+        #expect(result == expected)
+    }
+
+    @Test("Example 6")
+    func example6() {
+        var parser = Parser(contents: ">\t\tfoo\n")
+
+        let result = parser.parse()
+
+        let expected: [Block] = [
+            .quote([.code("  foo\n", .empty)]),
+        ]
+        #expect(result == expected)
+    }
+
+    @Test("Example 8")
+    func example8() {
+        var parser = Parser(contents: "    foo\n\tbar\n")
+
+        let result = parser.parse()
+
+        let expected: [Block] = [
+            .code("foo\nbar\n", .empty),
+        ]
+        #expect(result == expected)
+    }
+
+    @Test("Example 9")
+    func example9() {
+        var parser = Parser(contents: " - foo\n   - bar\n\t - baz")
+
+        let result = parser.parse()
+
+        let expected: [Block] = [
+            .list([
+                ListElement(blocks: [
+                    .text("foo", .regular),
+                    .list([
+                        ListElement(blocks: [
+                            .text("bar", .regular),
+                            .list([
+                                ListElement(blocks: [
+                                    .text("baz", .regular)
+                                ])
+                            ])
+                        ])
+                    ])
+                ]),
+            ])
         ]
         #expect(result == expected)
     }
