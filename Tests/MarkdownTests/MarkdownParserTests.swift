@@ -92,4 +92,22 @@ struct MarkdownParserTests {
             ])
         ])
     }
+
+    @Test("Bench markdown code block")
+    func mdCodeBlockFromBench() {
+        var parser = Parser(contents: """
+        ``` markdown
+        1. one
+
+        2. two
+        3. three
+        ```
+        """)
+
+        let result = parser.parse()
+
+        #expect(result == [
+            .code("1. one\n\n2. two\n3. three", CodeBlockInfo(lang: "markdown", rest: nil))
+        ])
+    }
 }
