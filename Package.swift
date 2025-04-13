@@ -12,7 +12,6 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-testing.git", branch: "main"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
     ],
     targets: [
@@ -32,7 +31,6 @@ let package = Package(
             name: "DotMdTests",
             dependencies: [
                 .target(name: "DotMd"),
-                .product(name: "Testing", package: "swift-testing"),
             ],
             path: "Tests/MarkdownTests"
         ),
