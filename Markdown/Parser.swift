@@ -35,6 +35,16 @@ internal struct Parser {
                 parseList()
             case let .codeBlock(info):
                 parseCodeBlock(info: info)
+            case .quote:
+                var components: [Block] = []
+                while case let .line(value) = lexer.nextTok() {
+                    components.append(.text(value, .regular))
+                    lexer.nextTok() // new line
+                    guard case .quote = lexer.nextTok() else {
+                        break
+                    }
+                }
+                blocks.append(.quote(components))
             }
         }
         checkParagraph()
@@ -75,7 +85,7 @@ internal struct Parser {
             case .list:
                 consequentiveLines = 0
             case let .line(value):
-                items.append(.text(value, .regular))
+                items.append(.p([.text(value, .regular)]))
             default:
                 consequentiveLines += 1
             }
@@ -85,7 +95,7 @@ internal struct Parser {
 
     private mutating func parseCodeBlock(info: CodeBlockInfo) {
         var value = ""
-        while let tok = lexer.nextTok() {
+        while let tok = lexer.nextTok(eatWhitespaces: false) {
             switch tok {
             case .codeBlock:
                 var i = value.startIndex

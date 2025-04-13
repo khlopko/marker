@@ -68,12 +68,31 @@ struct MarkdownParserTests {
         #expect(result == [
             .p([.text("Here is a list:", .regular)]),
             .list([
-                .text("First item", .regular),
-                .text("Second item", .regular),
-                .text("Third item", .regular),
+                .p([.text("First item", .regular)]),
+                .p([.text("Second item", .regular)]),
+                .p([.text("Third item", .regular)]),
             ]),
             .p([.text("And text after list.", .regular)]),
         ]) 
+    }
+
+    @Test("Example 4")
+    func example4() {
+        var parser = Parser(contents: """
+          - foo
+
+            bar
+        """)
+
+        let result = parser.parse()
+
+        let expected: [Block] = [
+            .list([
+                .p([.text("foo", .regular)]),
+                .p([.text("bar", .regular)]),
+            ])
+        ]
+        #expect(result == expected)
     }
 
     @Test("Example 42: Precedence")
@@ -85,12 +104,13 @@ struct MarkdownParserTests {
 
         let result = parser.parse()
 
-        #expect(result == [
+        let expected: [Block] = [
             .list([
-                .text("`one", .regular),
-                .text("two`", .regular),
+                .p([.text("`one", .regular)]),
+                .p([.text("two`", .regular)]),
             ])
-        ])
+        ]
+        #expect(result == expected)
     }
 
     @Test("Bench markdown code block")
@@ -109,5 +129,32 @@ struct MarkdownParserTests {
         #expect(result == [
             .code("1. one\n\n2. two\n3. three", CodeBlockInfo(lang: "markdown", rest: nil))
         ])
+    }
+
+    @Test("Basic quote parsing")
+    func basicQuote() {
+        var parser = Parser(contents: """
+        Hello!
+
+        > This is quote
+        > And this is still the same quote
+
+        Bye?
+
+        > Yep. Second one.
+
+        End.
+        """)
+
+        let result = parser.parse()
+
+        let expected: [Block] = [
+            .p([.text("Hello!", .regular)]),
+            .quote([.text("This is quote", .regular), .text("And this is still the same quote", .regular)]),
+            .p([.text("Bye?", .regular)]),
+            .quote([.text("Yep. Second one.", .regular)]),
+            .p([.text("End.", .regular)]),
+        ]
+        #expect(result == expected)
     }
 }

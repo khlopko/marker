@@ -7,6 +7,7 @@ internal enum MarkdownToken {
     case list
     case header(HeaderLevel)
     case codeBlock(CodeBlockInfo)
+    case quote
 
     var rawValue: String {
         switch self {
@@ -20,6 +21,8 @@ internal enum MarkdownToken {
             return Array(repeating: "#", count: level.rawValue).joined()
         case let .codeBlock(info):
             return "```\(info.lang ?? "") \(info.rest ?? "")"
+        case .quote:
+            return ">"
         }
     }
 }
@@ -36,14 +39,24 @@ internal struct Lexer {
         self.contents = contents
     }
 
-    mutating func nextTok() -> MarkdownToken? {
+    mutating func nextTok(eatWhitespaces: Bool = true) -> MarkdownToken? {
         guard lastPos < contents.count else {
             return nil
         }
         let start = lastPos
+        if eatWhitespaces {
+            while lastPos < contents.count && (contents[lastPos] == " " || contents[lastPos] == "\t") {
+                lastPos += 1
+            }
+        }
         switch contents[lastPos] {
         case "\n":
             lastPos += 1
+            if eatWhitespaces {
+                while lastPos < contents.count && (contents[lastPos] == " " || contents[lastPos] == "\t") {
+                    lastPos += 1
+                }
+            }
             return .newline
         case "#":
             return header(start: start)
@@ -53,6 +66,13 @@ internal struct Lexer {
                 lastPos += 1
             }
             return .list
+        case ">":
+            if lastPos + 1 < contents.count && contents[lastPos + 1].isWhitespace {
+                lastPos += 1 // eat whitespace
+                lastPos += 1 // advance to next char
+                return .quote
+            }
+            return line(start: start)
         case "`":
             // consume 3 backticks
             while lastPos < contents.count && lastPos - start < 3 && contents[lastPos] == "`" {
@@ -84,7 +104,7 @@ internal struct Lexer {
             }
             let info = CodeBlockInfo(lang: lang, rest: rest)
             return .codeBlock(info)
-        default: 
+        default:
             return line(start: start)
         }
     }
@@ -95,7 +115,7 @@ internal struct Lexer {
             level += 1
             lastPos += 1
         }
-        guard 
+        guard
             let headerLevel = HeaderLevel(rawValue: level),
             lastPos >= contents.count || contents[lastPos] == " " || contents[lastPos] == "\n"
         else {
@@ -106,15 +126,18 @@ internal struct Lexer {
     }
 
     private mutating func line(start: Int) -> MarkdownToken {
+        let value = consumeText(start: start)
+        return .line(value)
+    }
+
+    private mutating func consumeText(start: Int) -> String {
         guard start < contents.count else {
-            return .line(String(contents[start...]))
+            return String(contents[start...])
         }
         while lastPos < contents.count && contents[lastPos] != "\n" {
             lastPos += 1
         }
-        var value = String(contents[start..<lastPos])
-        
-        return .line(value)
+        let value = String(contents[start..<lastPos])
+        return value
     }
 }
-

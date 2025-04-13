@@ -99,11 +99,12 @@ extension MarkdownParserTests {
 
             let result = parser.parse()
             
-            #expect(result == [
+            let expected: [Block] = [
                 .p([.text("Look at the following sample code:", .regular)]),
                 .code("let x = 5\nlet y = 10\nlet z = x + y", CodeBlockInfo(lang: nil, rest: nil)),
                 .p([.text("Isn't it cool?", .regular)]),
-            ])
+            ]
+            #expect(result == expected)
         }
 
         @Test("Carry language information within the block")
@@ -120,11 +121,12 @@ extension MarkdownParserTests {
 
             let result = parser.parse()
             
-            #expect(result == [
+            let expected: [Block] = [
                 .p([.text("Look at the following sample code:", .regular)]),
                 .code("let x = 5\nlet y = 10\nlet z = x + y", CodeBlockInfo(lang: "swift", rest: nil)),
                 .p([.text("Isn't it cool?", .regular)]),
-            ])
+            ]
+            #expect(result == expected)
         }
     }
 }

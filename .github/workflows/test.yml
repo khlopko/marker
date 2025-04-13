@@ -19,4 +19,6 @@ jobs:
       run: swift build
     - name: run tests
       run: swift test
+    - name: run spec tests
+      run: cd Tests && python spec_tests.py 
 

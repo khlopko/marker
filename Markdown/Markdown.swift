@@ -29,6 +29,7 @@ public enum Block: Equatable, Sendable {
     case text(String, TextStyle)
     case list([Block])
     case code(String, CodeBlockInfo)
+    case quote([Block])
     indirect case h(HeaderLevel, [Block])
 }
 
@@ -44,11 +45,13 @@ extension Block: CustomStringConvertible {
         case let .list(blocks):
             return blocks.map { block in
                 block.description
-            }.joined(separator: "") + "\n"
+            }.joined() + "\n"
         case let .code(value, _):
             return "```\n\(value)\n```"
-        case let .h(level, block):
-            return "\(String(Array(repeating: "#", count: level.rawValue))) \(block.description)"
+        case let .quote(blocks):
+            return "> \(blocks.map(\.description).joined())"
+        case let .h(level, blocks):
+            return "\(String(Array(repeating: "#", count: level.rawValue))) \(blocks.map(\.description).joined())"
         }
     }
 }
@@ -70,6 +73,8 @@ extension Block: CustomDebugStringConvertible {
                 prefix = "[\(prefix)]"
             }
             return "code\(prefix)(\(value))"
+        case let .quote(blocks):
+            return "quote(\(blocks.map(\.debugDescription).joined(separator: ", ")))"
         case let .h(level, block):
             return "h(\(level), \(block.debugDescription))"
         }

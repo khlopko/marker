@@ -65,6 +65,9 @@ extension HTMLRenderer {
             <style>
                 body {
                     font-family: sans-serif;
+                    line-height: 1.5;
+                    max-width: 67%;
+                    margin: 0 auto;
                 }
                 .bold {
                     font-weight: bold;
@@ -79,19 +82,19 @@ extension HTMLRenderer {
                     color: black;
                 }
                 h1 {
-                    font-size: 2.5rem;
+                    font-size: 1.67rem;
                 }
                 h2 {
-                    font-size: 2rem;
-                }
-                h3 {
-                    font-size: 1.75rem;
-                }
-                h4 {
                     font-size: 1.5rem;
                 }
+                h3 {
+                    font-size: 1.4rem;
+                }
+                h4 {
+                    font-size: 1.2rem;
+                }
                 h5 {
-                    font-size: 1.25rem;
+                    font-size: 1.1rem;
                 }
                 h6 {
                     font-size: 1rem;
@@ -99,10 +102,17 @@ extension HTMLRenderer {
                 p {
                     color: black;
                 }
-                pre {
+                pre, blockquote {
                     background-color: #f4f4f4;
-                    padding: 10px;
+                    padding: 17px 11px;
                     border-radius: 5px;
+                }
+                pre {
+                    margin: 21px;
+                }
+                blockquote {
+                    margin: 21px;
+                    border-left: 10px solid #e4e4e4;
                 }
             </style>
             """
@@ -118,13 +128,18 @@ extension HTMLRenderer {
             "<ul>\(blocks.map { "<li>\(render($0))</li>" }.joined())</ul>"
         case let .code(value, info):
             render(code: value, lang: info.lang)
+        case let .quote(blocks):
+            "<blockquote>\(blocks.map(render).joined(separator: " "))</blockquote>"
         case let .h(level, blocks):
             "<h\(level.rawValue)>\(blocks.map { render($0) }.joined())</h\(level.rawValue)>"
         }
     }
 
     private func render(text: String, style: TextStyle) -> String {
-        return "<span class=\"\(style)\">\(text.escapedForHTML())</span>"
+        switch style {
+        case .regular:
+            return "\(text.escapedForHTML())"
+        }
     }
 
     private func render(code: String, lang: String?) -> String {
