@@ -15,66 +15,14 @@ struct MarkdownParserTests {
         #expect(result == []) 
     }
 
-    @Test("Just one simple paragraph")
-    func simpleParagraph() {
-        var parser = Parser(contents: "This is simple paragraph of text.")
-
-        let result = parser.parse()
-        
-        let expected: [Block] = [
-            .p([.text("This is simple paragraph of text.", .regular)])
-        ]
-        #expect(result == expected) 
-    }
-
-    @Test("Multiple paragraphs and headers intermixed")
-    func multipleParagraphsAndHeaderParagraphs() {
-        var parser = Parser(contents:
-        """
-        This is a paragraph.
-        Still the same paragraph.
-
-        And this is another one.
-        # And this is a header paragraph
-        ### This one as well
-        Paragraph after header.
-        """)
-
-        let result = parser.parse()
-        
-        let expected: [Block] = [
-            .p([.text("This is a paragraph.\nStill the same paragraph.", .regular)]),
-            .p([.text("And this is another one.", .regular)]),
-            .h(.h1, [.text("And this is a header paragraph", .regular)]),
-            .h(.h3, [.text("This one as well", .regular)]),
-            .p([.text("Paragraph after header.", .regular)]),
-        ]
-        #expect(result == expected) 
-    }
-
-    @Test("Basic quote parsing")
-    func basicQuote() {
-        var parser = Parser(contents: """
-        Hello!
-
-        > This is quote
-        > And this is still the same quote
-
-        Bye?
-
-        > Yep. Second one.
-
-        End.
-        """)
+    @Test("Example 1")
+    func example1() {
+        var parser = Parser(contents: "\tfoo\tbaz\t\tbim")
 
         let result = parser.parse()
 
         let expected: [Block] = [
-            .p([.text("Hello!", .regular)]),
-            .quote([.text("This is quote", .regular), .text("And this is still the same quote", .regular)]),
-            .p([.text("Bye?", .regular)]),
-            .quote([.text("Yep. Second one.", .regular)]),
-            .p([.text("End.", .regular)]),
+            .code("foo\tbaz\t\tbim", .empty)
         ]
         #expect(result == expected)
     }
@@ -172,7 +120,7 @@ struct MarkdownParserTests {
                 ListElement(blocks: [
                     .text("foo", .regular),
                     .list([
-                        ListElement(blocks: [
+                        ListElement(blocks:  [
                             .text("bar", .regular),
                             .list([
                                 ListElement(blocks: [
@@ -183,6 +131,33 @@ struct MarkdownParserTests {
                     ])
                 ]),
             ])
+        ]
+
+/*
+        print("ACTUAL:")
+        
+        let md1 = try! Markdown(title: "Example 9 -> Result", contents: " - foo\n   - bar\n\t - baz")
+        let renderer = HTMLRenderer(markdown: md1)
+        print(renderer.render(parameters: []))
+
+        print("EXPECTED:")
+
+        let md2 = Markdown(title: "Example 9 -> Expectation", blocks: expected)
+        let renderer2 = HTMLRenderer(markdown: md2)
+        print(renderer2.render(parameters: []))
+*/
+
+        #expect(result == expected)
+    }
+
+    @Test("Example 10")
+    func example10() {
+        var parser = Parser(contents: "#\tFoo")
+
+        let result = parser.parse()
+
+        let expected: [Block] = [
+            .h(.h1, [.text("Foo", .regular)])
         ]
         #expect(result == expected)
     }

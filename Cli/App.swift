@@ -56,16 +56,15 @@ struct Cli: ParsableCommand {
             md = try Markdown(title: "Markdown", contents: inputText.trimmingCharacters(in: CharacterSet(charactersIn: "\"")))
         }
         if debug {
-            print(md.debugDescription)
+            print(md/*.debugDescription*/)
         } else {
             switch outputFormat {
             case .html:
                 let renderer = HTMLRenderer(markdown: md)
                 print(renderer.render(parameters: [/*.fullHTML, .withStyles*/]))
             case .raw:
-                print(md.description)
+                print(md/*.description*/)
             }
         }
     }
 }
-

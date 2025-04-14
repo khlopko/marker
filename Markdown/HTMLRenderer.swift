@@ -140,11 +140,11 @@ extension HTMLRenderer {
         for element in elements {
             out += "\n"
             out += "<li>"
-            out += "\n"
-            out += element.blocks.map(render).joined(separator: "\n")
-            out += "\n</li>"
+            out += element.blocks.map(render).joined()
+            out += "</li>"
         }
-        out += "\n</ul>"
+        out += "\n"
+        out += "</ul>"
         return out
     }
 

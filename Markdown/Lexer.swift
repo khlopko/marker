@@ -124,7 +124,7 @@ internal struct Lexer {
         }
         guard
             let headerLevel = HeaderLevel(rawValue: level),
-            lastPos >= contents.count || contents[lastPos] == " " || contents[lastPos] == "\n"
+            lastPos >= contents.count || contents[lastPos].isWhitespace || contents[lastPos] == "\n"
         else {
             return line(start: start)
         }

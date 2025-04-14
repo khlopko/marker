@@ -10,6 +10,11 @@ public struct Markdown {
         var parser = Parser(contents: Array(contents))
         self.blocks = parser.parse()
     }
+
+    internal init(title: String, blocks: [Block]) {
+        self.title = title
+        self.blocks = blocks
+    }
 }
 
 extension Markdown: CustomStringConvertible {
@@ -45,8 +50,8 @@ extension Block: CustomStringConvertible {
         case let .list(elements):
             return elements.map { element in
                 return element.blocks.map { block in
-                    block.description
-                }.joined() + "\n"
+                    "- \(block.description)"
+                }.joined(separator: "\n") + "\n"
             }.joined()
         case let .code(value, _):
             return "```\n\(value)\n```"
@@ -109,3 +114,4 @@ public struct CodeBlockInfo: Equatable, Sendable {
 public struct ListElement: Equatable, Sendable {
     let blocks: [Block]
 }
+

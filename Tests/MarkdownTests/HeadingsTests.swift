@@ -17,14 +17,15 @@ extension MarkdownParserTests {
 
             let result = parser.parse()
 
-            #expect(result == [
+            let expected: [Block] = [
                 .h(.h1, [.text("foo", .regular)]),
                 .h(.h2, [.text("foo", .regular)]),
                 .h(.h3, [.text("foo", .regular)]),
                 .h(.h4, [.text("foo", .regular)]),
                 .h(.h5, [.text("foo", .regular)]),
                 .h(.h6, [.text("foo", .regular)]),
-            ])
+            ]
+            #expect(result == expected)
         }
 
         @Test("Example 63: Too many leading hashes")
@@ -80,11 +81,12 @@ extension MarkdownParserTests {
 
             let result = parser.parse()
 
-            #expect(result == [
+            let expected: [Block] = [
                 .h(.h2, []),
                 .h(.h1, []),
                 .h(.h3, []),
-            ])
+            ]
+            #expect(result == expected)
         }
     }
 }

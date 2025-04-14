@@ -40,7 +40,8 @@ internal struct Parser {
             case let .header(level):
                 parseHeader(level: level)
             case .list:
-                parseList()
+                let elements = parseList()
+                blocks.append(.list(elements))
             case let .codeBlock(info):
                 parseCodeBlock(info: info)
             case .quote:
@@ -69,15 +70,29 @@ internal struct Parser {
     }
 
     private mutating func parseHeader(level: HeaderLevel) {
-        let nextTok = lexer.nextTok()
+        var value: String = ""
+
+        outer: while let tok = lexer.nextTok() {
+            switch tok {
+            case .indent, .whitespace:
+                continue
+            case let .line(lineValue):
+                value += lineValue
+            case .newline, .header:
+                break outer
+            default:
+                assertionFailure("unexpected token in header: \(tok)")
+            }
+        }
+
         var components: [Block] = []
-        if case let .line(value) = nextTok {
+        if !value.isEmpty {
             components.append(.text(value, .regular))
         }
         blocks.append(.h(level, components))
     }
 
-    private mutating func parseList() {
+    private mutating func parseList() -> [ListElement] {
         var elements: [ListElement] = []
         var elementBlocks: [Block] = []
 
@@ -87,18 +102,28 @@ internal struct Parser {
         while let tok: MarkdownToken = lexer.nextTok() {
             switch tok {
             case .list:
-                elements.append(ListElement(blocks: elementBlocks))
                 if indentLevel > 0 {
-                    elements.append(ListElement(blocks: parse()))
+                    elementBlocks.append(.list(parseList()))
                 }
+                elements.append(ListElement(blocks: elementBlocks))
                 elementBlocks = []
                 indentLevel = 0
             case let .line(value):
+                if indentLevel > 0 {
+                    for i in elementBlocks.indices {
+                        if case .text = elementBlocks[i] {
+                            elementBlocks[i] = .p([elementBlocks[i]])
+                        }
+                    }
+                }
+
                 if indentLevel > 1 {
                     let value = leftovers + value + "\n"
                     elementBlocks.append(.code(value, .empty))
-                } else {
+                } else if indentLevel > 0 {
                     elementBlocks.append(.p([.text(value, .regular)]))
+                } else {
+                    elementBlocks.append(.text(value, .regular))
                 }
                 leftovers = ""
                 indentLevel = 0
@@ -121,8 +146,10 @@ internal struct Parser {
             }
         }
 
-        elements.append(ListElement(blocks: elementBlocks))
-        blocks.append(.list(elements))
+        if !elementBlocks.isEmpty {
+            elements.append(ListElement(blocks: elementBlocks))
+        }
+        return elements
     }
 
     private mutating func parseQuote() {
